@@ -1,3 +1,4 @@
+# Ignored files are used for testing
 package-lock.json
 index.js
 .env
