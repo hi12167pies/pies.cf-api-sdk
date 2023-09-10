@@ -60,4 +60,32 @@ module.exports = class PiesSDK {
   async createShortendURL(code, name, host, url) {
     return (await this.#post("/account/urlshort", { code, name, host, url })).data.data
   }
+
+  /**
+   * @param {string} code
+   */
+  async getAccountTunnels(code) {
+    return (await this.#get("/account/tunnels", { code })).data.data
+  }
+
+  /**
+   * @param {string} code
+   */
+  async getAccountLinks(code) {
+    return (await this.#get("/account/links", { code })).data.data
+  }
+
+  /**
+   * @param {string} code
+   */
+  async getAccountLicenses(code) {
+    return (await this.#get("/account/licenses", { code })).data.data
+  }
+
+  /**
+   * @param {string} code
+   */
+  async getAccountPermissions(code) {
+    return (await this.#get("/account/permissions", { code })).data.data
+  }
 }
