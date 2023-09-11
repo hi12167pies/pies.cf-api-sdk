@@ -1,5 +1,6 @@
 # Ignored files are used for testing
 package-lock.json
 test/
+dist/
 .env
 node_modules
