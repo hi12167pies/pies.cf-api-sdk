@@ -1,32 +1,63 @@
 import axios from "axios"
 
+export interface StringObject {
+  [key: string]: string
+}
+
 export class PieSDK {
   _authToken: string
   constructor(authToken: string) {
     this._authToken = authToken
   }
 
-  _url(path: string) {
-    return `https://api.pies.cf${path}`
+  _url(path: string, body?: StringObject) {
+    let str = `https://api.pies.cf${path}`
+    if (body != null && Object.keys(body).length != 0) {
+      str += this._createQuery(body)
+    }
+    return str
   }
 
-  _get(url: string, body?: object) {
-    return axios.get(this._url(url), {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: this._authToken
-      },
-      data: body
-    })
-  }
-
-  _post(url: string, body?: object) {
-    return axios.post(this._url(url), body, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: this._authToken
+  async _get(url: string, body?: StringObject) {
+    try {
+      return await axios.get(this._url(url, body), {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: this._authToken
+        },
+        data: body
+      })
+    } catch (e: any) {
+      if (e.response.status == 401) {
+        throw new APIAuthorizationError()
       }
-    })
+      throw new APIError()
+    }
+  }
+
+  async _post(url: string, body?: StringObject) {
+    try {
+      return await axios.post(this._url(url, body), {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: this._authToken
+        }
+      })
+    } catch (e: any) {
+      if (e.response.status == 401) {
+        throw new APIAuthorizationError()
+      }
+      throw new APIError()
+    }
+  }
+
+  _createQuery(obj: StringObject) {
+    let strs = []
+    for (const key in obj) {
+      const value = obj[key]
+      strs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    }
+    return `?${strs.join("&")}`
   }
 
   async ping() {
@@ -131,3 +162,6 @@ export enum Intents {
   "ViewTunnels"= 11,
   "ViewLinks" = 12
 }
+
+export class APIError extends Error {}
+export class APIAuthorizationError extends APIError {}
