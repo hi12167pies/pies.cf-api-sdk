@@ -1,9 +1,12 @@
 import axios from "axios"
 
 export class PieSDK {
-  _authToken: string
+  private authToken: string
+  private getAuthHeader() {
+    return "Bearer " + this.authToken
+  }
   constructor(authToken: string) {
-    this._authToken = authToken
+    this.authToken = authToken
   }
 
   _url(path: string) {
@@ -14,7 +17,7 @@ export class PieSDK {
     return axios.get(this._url(url), {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: this._authToken
+        Authorization: this.getAuthHeader()
       },
       data: body
     })
@@ -24,7 +27,7 @@ export class PieSDK {
     return axios.post(this._url(url), body, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: this._authToken
+        Authorization: this.getAuthHeader()
       }
     })
   }
