@@ -1,5 +1,10 @@
 import axios from "axios"
 
+export interface StringObject {
+  [key: string]: string
+}
+
+
 export class PieSDK {
   private authToken: string
   private getAuthHeader() {
@@ -9,12 +14,26 @@ export class PieSDK {
     this.authToken = authToken
   }
 
-  _url(path: string) {
-    return `https://api.pies.cf${path}`
+  _createQuery(obj: StringObject) {
+    let strs = []
+    for (const key in obj) {
+      const value = obj[key]
+      strs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    }
+    return `?${strs.join("&")}`
   }
 
-  _get(url: string, body?: object) {
-    return axios.get(this._url(url), {
+
+  _url(path: string, body?: StringObject) {
+    let str = `https://api.pies.cf${path}`
+    if (body != null && Object.keys(body).length != 0) {
+      str += this._createQuery(body)
+    }
+    return str
+  }
+
+  async _get(url: string, body?: StringObject) {
+    return await axios.get(this._url(url, body), {
       headers: {
         'Content-Type': 'application/json',
         Authorization: this.getAuthHeader()
@@ -23,8 +42,8 @@ export class PieSDK {
     })
   }
 
-  _post(url: string, body?: object) {
-    return axios.post(this._url(url), body, {
+  async _post(url: string, body?: StringObject) {
+    return await axios.post(this._url(url, body), {
       headers: {
         'Content-Type': 'application/json',
         Authorization: this.getAuthHeader()
