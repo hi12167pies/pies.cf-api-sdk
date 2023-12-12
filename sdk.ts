@@ -14,7 +14,7 @@ export class PieSDK {
     this.authToken = authToken
   }
 
-  _createQuery(obj: StringObject) {
+  private createQuery(obj: StringObject) {
     let strs = []
     for (const key in obj) {
       const value = obj[key]
@@ -23,17 +23,22 @@ export class PieSDK {
     return `?${strs.join("&")}`
   }
 
+  private apiURL: string = "https://api.pies.cf"
+  public setAPIUrl(string: string) {
+    this.apiURL = string
+  }
 
-  _url(path: string, body?: StringObject) {
-    let str = `https://api.pies.cf${path}`
+
+  private url(path: string, body?: StringObject) {
+    let str = `${this.apiURL}${path}`
     if (body != null && Object.keys(body).length != 0) {
-      str += this._createQuery(body)
+      str += this.createQuery(body)
     }
     return str
   }
 
-  async _get(url: string, body?: StringObject) {
-    return await axios.get(this._url(url, body), {
+  private async get(url: string, body?: StringObject) {
+    return await axios.get(this.url(url, body), {
       headers: {
         'Content-Type': 'application/json',
         Authorization: this.getAuthHeader()
@@ -42,8 +47,8 @@ export class PieSDK {
     })
   }
 
-  async _post(url: string, body?: StringObject) {
-    return await axios.post(this._url(url, body), {
+  private async post(url: string, body?: StringObject) {
+    return await axios.post(this.url(url, body), {
       headers: {
         'Content-Type': 'application/json',
         Authorization: this.getAuthHeader()
@@ -52,39 +57,82 @@ export class PieSDK {
   }
 
   async ping() {
-    return (await this._get("/ping")).data
+    return (await this.get("/ping")).data
   }
 
   async getAppInfo(): Promise<AppInfo> {
-    return (await this._get("/app/info")).data.data
+    return (await this.get("/app/info")).data.data
+  }
+
+  async getIntentMeta(): Promise<IntentMeta> {
+    return (await this.get("/resources/intent_meta")).data.data
+  }
+
+  async getAllIntents(): Promise<Intents[]> {
+    return (await this.get("/resources/intents")).data.data
   }
 
   async getAccountInfo(code: AccountCode): Promise<AccountInfo> {
-    return (await this._get("/account/info", { code })).data.data
+    return (await this.get("/account/info", { code })).data.data
   }
 
   async getShortendURLS(code: AccountCode): Promise<URLShort[]> {
-    return (await this._get("/account/urlshort", { code })).data.data
+    return (await this.get("/account/urlshort", { code })).data.data
   }
 
   async createShortendURL(code: AccountCode, name: string, host: string, url: string): Promise<void> {
-    return (await this._post("/account/urlshort", { code, name, host, url })).data.data
+    return (await this.post("/account/urlshort", { code, name, host, url })).data.data
   }
   async getAccountTunnels(code: AccountCode): Promise<Tunnel[]> {
-    return (await this._get("/account/tunnels", { code })).data.data
+    return (await this.get("/account/tunnels", { code })).data.data
   }
 
   async getAccountLinks(code: AccountCode): Promise<Link[]> {
-    return (await this._get("/account/links", { code })).data.data
+    return (await this.get("/account/links", { code })).data.data
   }
 
   async getAccountLicenses(code: AccountCode): Promise<License[]> {
-    return (await this._get("/account/licenses", { code })).data.data
+    return (await this.get("/account/licenses", { code })).data.data
   }
 
   async getAccountPermissions(code: AccountCode): Promise<Permission[]> {
-    return (await this._get("/account/permissions", { code })).data.data
+    return (await this.get("/account/permissions", { code })).data.data
   }
+
+  async getAllMetaData(code: AccountCode): Promise<MetaData[]> {
+    return (await this.get("/account/metadata/all", { code })).data.data
+  }
+
+  async setMetaData(code: AccountCode, key: string, value: string): Promise<void> {
+    return (await this.get("/account/metadata/set", { code, key, value })).data.data
+  }
+
+  async getMetaData(code: AccountCode, key: string): Promise<MetaData[]> {
+    return (await this.get("/account/metadata/get", { code, key })).data.data
+  }
+
+  async deleteMetaData(code: AccountCode, key: string): Promise<void> {
+    return (await this.get("/account/metadata/delete", { code, key })).data.data
+  }
+}
+
+export type IntentMeta = {
+  error_message: StringObject,
+  default_redirect: {
+    accepted: string,
+    denied: string
+  },
+  requires_verified: Intents[],
+  lang_name: {
+    [key: number]: string
+  },
+  extra: object
+}
+
+export type MetaData = {
+  id: number,
+  key: string,
+  value: string,
 }
 
 export type AppInfo = {
@@ -151,5 +199,6 @@ export enum Intents {
   "ViewURLShort" = 9,
   "CreateURLShort" = 10,
   "ViewTunnels"= 11,
-  "ViewLinks" = 12
+  "ViewLinks" = 12,
+  "MetaData" = 13
 }
